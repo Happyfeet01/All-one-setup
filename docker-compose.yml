@@ -9,8 +9,8 @@ services:
       - 6800:6800
       - 6880:80
     volumes:
-      - /home/docker/downloads-aria/complete:/data
-      - /docker/Aria2:/conf
+      - /home/docker/Aria2/downloads-aria/complete:/data
+      - /home/docker/Aria2:/conf
     environment:
       - PGID=0
       - PUID=0
@@ -58,7 +58,35 @@ services:
       - "1194:1194/udp"
     restart: always
     volumes:
-      - /docker/openvpn-data/conf:/etc/openvpn
+      - /home/openvpn-data/conf:/etc/openvpn
+
+  db:
+     image: mariadb
+     volumes:
+       - /home/wordpress/db:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: AnotherSeuperSecretPassword
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wpdbdocker
+       MYSQL_PASSWORD: SuperSecret
+
+  wordpress:
+     depends_on:
+       - db
+     image: wordpress:latest
+     ports:
+       - "8888:80"
+       - "4443:443"
+     restart: always
+     volumes:
+       - /home/wordpress/wp-content:/var/www/html/wp-content
+       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wpdbdocker
+       WORDPRESS_DB_PASSWORD: SuperSecret
+       WORDPRESS_DB_NAME: wordpress
 
 volumes:
   db_data: {}
