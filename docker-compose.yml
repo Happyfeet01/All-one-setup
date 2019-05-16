@@ -1,0 +1,64 @@
+version: '2.2'
+services:
+
+  aria2:
+    container_name: Aria2
+    image: abcminiuser/docker-aria2-with-webui:latest-ng
+    network_mode: "bridge"
+    ports:
+      - 6800:6800
+      - 6880:80
+    volumes:
+      - /home/docker/downloads-aria/complete:/data
+      - /docker/Aria2:/conf
+    environment:
+      - PGID=0
+      - PUID=0
+    restart: always
+
+  watchtower:
+    image: v2tec/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json
+    command: watchtower collabora onlyoffice openvpn  aria2c --interval 30
+    restart: unless-stopped
+
+  collabora:
+    image: collabora/code
+    expose:
+      - 9980
+    cap_add:
+      - MKNOD
+    environment:
+      - domain=cloud.domain.tld
+      - VIRTUAL_HOST=office.domain.tld
+      - VIRTUAL_NETWORK=proxy-ssl
+      - VIRTUAL_PORT=9980
+      - VIRTUAL_PROTO=https
+      
+  onlyoffice:
+    image: onlyoffice/documentserver:latest
+    restart: always
+    volumes:
+      - /home/onlyoffice/data:/var/www/onlyoffice/Data
+    environment:
+      - JWT_ENABLED=true
+      - JWT_SECRET=SuperSecretPassword
+    ports:
+      - '8833:80'
+      - '4433:443'
+
+  openvpn:
+    cap_add:
+      - NET_ADMIN
+    image: kylemanna/openvpn
+    container_name: openvpn
+    ports:
+      - "1194:1194/udp"
+    restart: always
+    volumes:
+      - /docker/openvpn-data/conf:/etc/openvpn
+
+volumes:
+  db_data: {}
