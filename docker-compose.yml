@@ -18,14 +18,16 @@ services:
 
   watchtower:
     image: v2tec/watchtower
+    container_name: watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /root/.docker/config.json:/config.json
-    command: watchtower collabora onlyoffice openvpn  aria2c --interval 30
+    command: watchtower wordpressdb wordpress collabora onlyoffice openvpn Aria2c --interval 30 --cleanup --label-enable --debug  
     restart: unless-stopped
 
   collabora:
     image: collabora/code
+    container_name: collabora
     expose:
       - 9980
     cap_add:
@@ -39,6 +41,7 @@ services:
       
   onlyoffice:
     image: onlyoffice/documentserver:latest
+    container_name: onlyoffice
     restart: always
     volumes:
       - /home/onlyoffice/data:/var/www/onlyoffice/Data
@@ -60,8 +63,9 @@ services:
     volumes:
       - /home/openvpn-data/conf:/etc/openvpn
 
-  db:
+  db:container_name: wordpressdb
      image: mariadb
+     container_name: wordpressdb
      volumes:
        - /home/wordpress/db:/var/lib/mysql
      restart: always
@@ -75,6 +79,7 @@ services:
      depends_on:
        - db
      image: wordpress:latest
+     container_name: wordpress
      ports:
        - "8888:80"
        - "4443:443"
